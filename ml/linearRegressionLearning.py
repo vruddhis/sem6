@@ -1,105 +1,137 @@
 
+
 import csv
 import os
-
-def load_dataset(filename):
-    if not os.path.isfile(filename):
-        print(f"File {filename} does not exist.")
-        return []
-    dataset = []
-    with open(filename, newline='') as csvfile:
-        
-        reader = csv.reader(csvfile)
-        next(reader)
-        for row in reader:
-            
-            x = [float(value) for value in row[:-1]]  
-            y = float(row[-1]) 
-            dataset.append((x, y))
-    return dataset
-
-dataset = load_dataset('tvmarketing.csv')
-
 import math
 import random
 
+def load_dataset(filename):
+    if not os.path.isfile(filename):
+        print(f"Error: File '{filename}' not found.") 
+        return []
+
+    dataset = []
+    with open(filename, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader, None)
+
+        for row in reader:
+            try:
+                x = [float(row[0])]
+                y = float(row[1])
+                dataset.append((x, y))
+            except ValueError:
+                print(f"Warning: Skipping row with invalid data: {row}")  
+                continue  
+            except IndexError: 
+                print(f"Warning: Skipping row with missing data: {row}")
+                continue
+
+    if not dataset:  
+        print(f"Warning: No valid data found in '{filename}'.")  
+
+    return dataset
 
 def is_linear_relationship(dataset):
     n = len(dataset)
+    print(n)
     num_features = len(dataset[0][0])
-    sums_x = [0] * num_features
-    sums_y = 0
-    for x, y in dataset:
-        for i in range(num_features):
-            sums_x[i] += x[i]
-        sums_y += y
+    correlation_coefficients = []
 
-    mean_x = [sums_x[i] / n for i in range(num_features)]
-    mean_y = sums_y / n
-    numerator = [0] * num_features
-    sum_dev_x_squared = [0] * num_features
-    sum_dev_y_squared = 0
-    for x, y in dataset:
-        for i in range(num_features):
-            numerator[i] += (x[i] - mean_x[i]) * (y - mean_y)
-            sum_dev_x_squared[i] += (x[i] - mean_x[i]) ** 2
-        sum_dev_y_squared += (y - mean_y) ** 2
+    for j in range(num_features):  
+        sum_x = 0
+        sum_y = 0
+        sum_xy = 0
+        sum_x_squared = 0
+        sum_y_squared = 0
 
-    pearson = [numerator[i] / math.sqrt(sum_dev_x_squared[i] * sum_dev_y_squared) for i in range(num_features)]
-    print("Pearson correlation coefficients:", pearson)
-    return all(abs(p) >= 0.75 for p in pearson)
+        for x, y in dataset:
+            sum_x += x[j]
+            sum_y += y
+            sum_xy += x[j] * y
+            sum_x_squared += x[j] ** 2
+            sum_y_squared += y ** 2
+
+        numerator = n * sum_xy - sum_x * sum_y
+        denominator = math.sqrt((n * sum_x_squared - sum_x**2) * (n * sum_y_squared - sum_y**2))
+
+        if denominator == 0: 
+            correlation = 0  
+        else:
+            correlation = numerator / denominator
+        correlation_coefficients.append(correlation)
+
+    print("Pearson correlation coefficients:", correlation_coefficients)
+    return all(abs(p) >= 0.75 for p in correlation_coefficients)
+
 
 def linear_regression_learning(dataset, question_x):
     n = len(dataset)
     num_features = len(dataset[0][0])
-    test = dataset[:n//10]
-    train = dataset[n//10:]
-    N = len(train)
+    test = dataset[:n // 10]
+    train = dataset[n // 10:]
+    mean_x = [0] * num_features
+    std_x = [0] * num_features
+    for i in range(num_features):
+        feature_values = [x[i] for x, _ in train]
+        mean_x[i] = sum(feature_values) / len(feature_values)
+        std_x[i] = math.sqrt(sum((val - mean_x[i])**2 for val in feature_values) / len(feature_values))
+    
+    def scale_data(data, mean, std):
+      scaled_data = []
+      for x, y in data:
+        scaled_x = [(x[i] - mean[i]) / std[i] if std[i] != 0 else 0 for i in range(num_features)]
+        scaled_data.append((scaled_x, y))
+      return scaled_data
+
+    train_scaled = scale_data(train, mean_x, std_x)
+    test_scaled = scale_data(test, mean_x, std_x)
+    question_x_scaled = [(question_x[i] - mean_x[i]) / std_x[i] if std_x[i] != 0 else 0 for i in range(num_features)]
+
     b = [random.random() for _ in range(num_features)]
     b0 = random.random()
-    
-    alpha = 0.001
-    def error(b0, b, train):
-        y_deviation = [0] * num_features
-        summation = 0 #for error
-        only_y_deviation = 0
-        for x, y in train:
-            predicted_y = b0 + sum(b[i] * x[i] for i in range(num_features))
-            summation += (predicted_y - y) ** 2
-            only_y_deviation += (predicted_y - y)
+    alpha = 0.01
+    epochs = 1000
+    tolerance = 0.001
+
+    def error(b0, b, data):
+        error_sum = 0
+        for x, y in data:
+            y_pred = b0 + sum(b[i] * x[i] for i in range(num_features))
+            error_sum += (y_pred - y)**2
+        return error_sum / len(data)
+
+    prev_error = float('inf')
+    for epoch in range(epochs):
+        db = [0] * num_features
+        db0 = 0
+        for x, y in train_scaled:
+            y_pred = b0 + sum(b[i] * x[i] for i in range(num_features))
+            diff = y - y_pred
             for i in range(num_features):
-                y_deviation[i] += (predicted_y - y) * x[i]
-        return (only_y_deviation, y_deviation, summation / (2 * N))
+                db[i] -= 2 * diff * x[i] / len(train_scaled)
+            db0 -= 2 * diff / len(train_scaled)
 
-    only_y_deviation, y_deviation, E = error(b0, b, train)
-    epoch = 1
-    print("error after assumption and b0, b", E, b0, b)
-
-    while E > 1:
-        b0 = b0 - alpha * only_y_deviation / N
         for i in range(num_features):
-            b[i] = b[i] - alpha * y_deviation[i] / N
-        only_y_deviation, y_deviation, E = error(b0, b, train)
-        print(f"After epoch {epoch}, error was {E} and b0, b were {b0}, {b}")
-        epoch += 1
+            b[i] -= alpha * db[i]
+        b0 -= alpha * db0
+        current_error = error(b0, b, train_scaled)
 
-    def accuracy(test, b0, b):
-        correct = 0
-        total = 0
-        if len(test) == 0:
-            return 1.0
-        for x, y in test:
-            predicted_y = b0 + sum(b[i] * x[i] for i in range(num_features))
-            if round(y) == round(predicted_y):
-                correct += 1
-            total += 1
-        return correct / total
+        if abs(prev_error - current_error) < tolerance:
+            print("Converged!")
+            break
+        prev_error = current_error
+        print(f"Epoch {epoch+1}, error: {current_error}")
 
-    a = accuracy(test, b0, b)
-    print("Accuracy is", a)
-    ans = b0 + sum(b[i] * question_x[i] for i in range(num_features))
+    test_error = error(b0, b, test_scaled)
+    print("Test error:", test_error)
+
+    ans = b0 + sum(b[i] * question_x_scaled[i] for i in range(num_features))
     return ans
 
-#dataset = [([1, 1], 1), ([2, 2], 2), ([3, 3], 3), ([4, 4], 4), ([5, 5], 5), ([7, 7], 7)]
+dataset = load_dataset('Salary_Data.csv')
 print("Is linear relationship?", is_linear_relationship(dataset))
-print("Learning method:\n", linear_regression_learning(dataset, [1]))
+years_experience = 4
+predicted_salary = linear_regression_learning(dataset, [years_experience]) 
+
+print(f"Predicted salary for {years_experience} years of experience: {predicted_salary}")

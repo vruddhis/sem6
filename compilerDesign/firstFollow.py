@@ -46,15 +46,15 @@ class Grammar:
     def findLHS(self):
         variables = self.rules.keys()
         for variable in variables:
-            self.LHS[variable] = {}
+            self.LHS[variable] = []
         for variable in variables:
             for rule in self.rules[variable]:
                 if rule == 'epsilon':
                     continue
                 for char in rule:
                     if char not in self.terminals:
-                        if variable not in self.LHS[char]:
-                            self.LHS[char][variable] =  rule
+                        
+                            self.LHS[char].append([variable, rule])
         
         
         
@@ -63,12 +63,15 @@ class Grammar:
         if input == self.start:
             ans.add('$')
         relevantRules = self.LHS[input]
-        for parent in relevantRules: #index in that dictionary
+        
+        for rule in relevantRules: #index in that dictionary
             ansRule = set()
-            string = relevantRules[parent]
+            parent = rule[0]
+            string = rule[1]
+            
             i = string.index(input)
             next = string[i+1:]
-            print(parent, string, next)
+            
             if next == '':
                 #go to parent
                 if parent not in self.follow:
@@ -105,7 +108,7 @@ class Grammar:
 
 g = Grammar({'S':['ACB', 'CbB', 'Ba'], 'B':['g', 'epsilon'], 'A' : ['da', 'BC'], 'C': ['h', 'epsilon']}, ['a','b', 'd', 'g', 'h'], 'S')
 g.findLHS()
-print(g.LHS)
+
 print(g.findFollow('C'))
 
 
