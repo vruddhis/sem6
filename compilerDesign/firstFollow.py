@@ -1,17 +1,18 @@
+from typing import Dict, List, Set, Tuple
 
 class Grammar:
     #assume every variable has exactly one rule. everything is either terminal or variable
     def __init__(self, rules, terminals, start):
-        self.first = {}
-        self.terminals = set(terminals)
-        self.rules = rules
-        self.follow = {}
-        self.LHS = {}
-        self.start = start
+        self.first : Dict[str, Set[str]]= {}
+        self.terminals : Set[str]= set(terminals)
+        self.rules : Dict[str, List[str]]= rules
+        self.follow :  Dict[str, Set[str]]= {}
+        self.LHS : Dict[str, List[Tuple[str, str]]] = {}
+        self.start: str = start
         
     
         
-    def findFirst(self, input: chr): 
+    def findFirst(self, input: str) -> Set[str]: 
         if input in self.terminals:
             self.first[input] = set(input)
             return [input]
@@ -43,7 +44,7 @@ class Grammar:
         self.first[input] = ans
         return ans 
 
-    def findLHS(self):
+    def findLHS(self) -> None:
         variables = self.rules.keys()
         for variable in variables:
             self.LHS[variable] = []
@@ -58,7 +59,7 @@ class Grammar:
         
         
         
-    def findFollow(self, input):
+    def findFollow(self, input: str) -> Set[str]:
         ans = set()
         if input == self.start:
             ans.add('$')
