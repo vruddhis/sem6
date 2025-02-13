@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+    <title>Places near you</title>
+</head>
+
+
+
+<body>
+    
+    <div>What places would you like us to see?</div>
+    <input id = "text">
+    <div>How far are you willing to go in metres?</div>
+    <input id = "radius" type="number">
+    <button onclick="findPlaces()">Submit</button>
+    <div id="map" style="height:80vh;width:80vw"></div>
+</body>
+<script>
+
+        let lat;
+        let long;
+        navigator.geolocation.getCurrentPosition((position) => {
+        lat = position.coords.latitude
+        long = position.coords.longitude
+        alert(`Your location is\n Latitude: ${lat}, Longitude: ${long}`)
+    })
+    console.log(lat,long)
+
+    const findPlaces = async () => {
+        const text = document.getElementById('text').value;
+        const radius = document.getElementById('radius').value;
+        var map = L.map('map').setView([lat,long], 13);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        L.marker([lat,long]).addTo(map)
+            .bindPopup('Your current location is')
+            .openPopup();
+        
+
+
+    setTimeout(async () => {
+        console.log(text);
+        const url = 'https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=19.1008%2C72.8763&type=cafe&radius=10000&language=en';
+const options = {
+	method: 'GET',
+	headers: {
+		'x-rapidapi-key': 'e35402ebbdmsh479a1da3fd360a1p15750djsne98dd4b90945',
+		'x-rapidapi-host': 'trueway-places.p.rapidapi.com'
+	}
+};
+
+        try {
+            const response = await fetch(url, options);
+            console.log(response);
+            const result = await response.json();
+            for (let j in result.results) {
+                console.log(result.results[j]);
+                L.marker([result.results[j].location.lat, result.results[j].location.lng]).addTo(map)
+                    .bindPopup(result.results[j].name)
+                    .openPopup();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }, 5000);
+
+
+
+
+    }
+
+
+
+</script>
+</html>
