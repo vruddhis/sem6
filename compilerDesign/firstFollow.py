@@ -77,7 +77,7 @@ class Grammar:
                 #go to parent
                 if parent not in self.follow:
                     self.findFollow(parent)
-                ansRule.union(self.follow[parent])
+                ansRule = ansRule.union(self.follow[parent])
             else:
                 stopped = 0
                 for char in next:
