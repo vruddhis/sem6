@@ -53,3 +53,13 @@ def accuracy(X, y, weights):
 test_accuracy = accuracy(X_test, y_test, weights)
 print(test_accuracy)
 
+print("Using library:")
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+logreg = LogisticRegression(max_iter = 1000)
+logreg.fit(X_train, y_train)
+y_pred = logreg.predict(X_test)
+print(logreg.coef_) 
+accuracy = accuracy_score(y_test, y_pred)
+print(accuracy)
+
