@@ -10,7 +10,15 @@ class DecisionTree:
         self.tree = self._grow_tree(X, y)
 
     def predict(self, X):
-        return np.array([self._predict(inputs) for inputs in X])
+        return np.array([self._predict(inputs, self.tree) for inputs in X])
+
+    def _predict(self, inputs, tree):
+        if tree.is_leaf_node():
+            return tree.value
+        if inputs[tree.feature] <= tree.threshold:
+            return self._predict(inputs, tree.left)
+        else:
+            return self._predict(inputs, tree.right)
 
     def _grow_tree(self, X, y, depth=0):
         n_samples, n_features = X.shape
