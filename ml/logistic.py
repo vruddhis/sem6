@@ -1,17 +1,18 @@
 import numpy as np
 import pandas as pd
 
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def log_likelihood(y_true, y_pred):
-    return np.sum(y_true * np.log(y_predicted) + (1 - y_true) * np.log(1 - y_predicted))
+    return np.sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
 def update_rule(w, alpha, y_true, x):
-    y_pred = sigmoid(np.dot(x, weights))
-    gradient = np.dot(x.T, (y_true - y_predicted)) #need transpose
+    y_pred = sigmoid(np.dot(x, w))
+    gradient = np.dot(x.T, (y_true - y_pred)) #need transpose
     w += alpha * gradient
-    return weights
+    return w
     
 def classify(x, w):
     if sigmoid(np.dot(x, w)) >= 0.5:
@@ -28,12 +29,12 @@ def learning(x, y_true):
     return w
 
 data = pd.read_csv('diabetes.csv')
-X = data[[Pregnancies,Glucose,BloodPressure,SkinThickness,Insulin,BMI,DiabetesPedigreeFunction,Age]]
+X = data[['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']]
 y = data['Outcome']
 X = X.values
 y = y.values
 
-def train_test_splitl(X, y):
+def train_test_split(X, y, test_size = 0.2):
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
     test_set_size = int(len(X) * test_size)
@@ -50,7 +51,7 @@ def accuracy(X, y, weights):
     predictions = np.array([classify(x, weights) for x in X])
     return np.mean(predictions == y)
 
-test_accuracy = accuracy(X_test, y_test, weights)
+test_accuracy = accuracy(X_test, y_test, w)
 print(test_accuracy)
 
 print("Using library:")
