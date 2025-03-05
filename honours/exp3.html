@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Places near you</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        #map { height: 80vh; width: 80vw; } 
+    </style>
+</head>
+<body>
+    <div>How far are you willing to go in meters?</div>
+    <input id="radius" type="number">
+    <button onclick="findPlaces()">Submit</button>
+    <div id="map"></div>  <script>
+        let map; 
+        navigator.geolocation.getCurrentPosition(position => {
+            lat = position.coords.latitude;
+            long = position.coords.longitude;
+
+            map = L.map('map').setView([lat, long], 13); 
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            L.marker([lat, long]).addTo(map).bindPopup('Your current location is').openPopup();
+        }, error => {
+            console.error("Error getting location:", error);
+            alert("Could not get your location. Please enable location services.");
+        });
+
+
+        const findPlaces = async () => {
+            if (!map) { // Check if map is initialized
+                console.error("Map not initialized!");
+                return; // Exit the function
+            }
+
+            const radius = document.getElementById('radius').value;
+            const now = new Date();
+            const hour = now.getHours();
+            const dayOfWeek = now.getDay();
+
+            const suggestedCategories = suggestCategories(hour, dayOfWeek);
+            console.log("Suggested Categories:", suggestedCategories);
+
+            let allResults = [];
+
+            for (const category of suggestedCategories) {
+                const apiUrl = constructApiUrl(category, radius);
+                console.log("API URL:", apiUrl);
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'x-rapidapi-key': '', 
+                            'x-rapidapi-host': 'trueway-places.p.rapidapi.com'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    allResults = allResults.concat(result.results);
+
+                } catch (error) {
+                    console.error(`Error fetching ${category}:`, error);
+                    alert(`Error fetching ${category}. Check console.`);
+                }
+            }
+
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+            L.marker([lat, long]).addTo(map).bindPopup('Your current location is').openPopup(); // Add current location marker again
+
+            for (let place of allResults) {
+                L.marker([place.location.lat, place.location.lng]).addTo(map)
+                    .bindPopup(place.name)
+                    .openPopup();
+            }
+        };
+
+        function suggestCategories(hour, dayOfWeek) {
+
+            if (hour >= 7 && hour < 11) { 
+                return ["cafe", "bakery", "restaurant"]; 
+            } else if (hour >= 11 && hour < 14) { 
+                return ["restaurant", "cafe", "food"]; 
+            } else if (hour >= 14 && hour < 17) { 
+                return ["cafe", "park", "tourist_attraction"]; 
+            } else if (hour >= 17 && hour < 22) { 
+                return ["restaurant", "bar", "cinema"];
+            } else { // Night
+                return ["bar", "night_club", "restaurant"]; 
+
+        
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            if (isWeekend) {
+                return ["restaurant", "park", "amusement_park", "cinema"]; 
+            }
+
+        }
+
+        function constructApiUrl(categories, radius) {
+            const categoryString = categories;
+            return `https://trueway-places.p.rapidapi.com/FindPlacesNearby?location=${lat}%2C${long}&type=${categoryString}&radius=${radius}&language=en`;
+        }
+
+    </script>
+</body>
+</html>
