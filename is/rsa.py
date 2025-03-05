@@ -1,8 +1,30 @@
 import math
 import random
- 
-p = 3
-q = 7
+
+def isPrime(n):
+    prime_flag = 0
+    if n > 1:
+        for i in range(2, int(math.sqrt(n)) + 1):
+            if (n % i == 0):
+                prime_flag = 1
+                break
+        if (prime_flag == 0):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+while True:
+    p = random.randint(2, 100)
+    if isPrime(p):
+        break
+
+while True:
+    q = random.randint(2, 100)
+    if isPrime(q):
+        break
+
 n = p*q
 phi = (p-1)*(q-1)
  
@@ -22,12 +44,12 @@ def extended_euclidean(a, b):
 gcd, x, y = extended_euclidean(e, phi)
 d = x % phi
  
-print(p, q, n, e, d)
+print("p, q, n, e, d", p, q, n, e, d)
  
-msg = 11
-C = pow(msg, e) % n
-print(f'Encrypted message: {C}')
+m = int(input("Enter message (number):"))
+C = pow(m, e) % n
+print('Encrypted message:', C)
  
 M = pow(C, d) % n
  
-print(f'Decrypted message: {M}')   
+print('Decrypted message: ', M)   
