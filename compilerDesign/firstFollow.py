@@ -111,7 +111,7 @@ class Grammar:
         self.follow[input] = ans
         return ans
     
-    def findParserTable(self) -> Dict[Tuple[str, str], List[str]]:
+def findParserTable(self) -> Dict[Tuple[str, str], List[str]]:
         self.findLHS()
         for variable in self.variables:
             self.findFirst(variable)
@@ -121,8 +121,6 @@ class Grammar:
         
                     
                 
-        
-
 g = Grammar({'S':['ACB', 'CbB', 'Ba'], 'B':['g', 'epsilon'], 'A' : ['da', 'BC'], 'C': ['h', 'epsilon']}, ['a','b', 'd', 'g', 'h'], 'S')
 g.findLHS()
 print(g.findFollow('A'))
