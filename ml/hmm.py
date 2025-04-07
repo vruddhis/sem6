@@ -1,19 +1,19 @@
 def find_prob(V, A, B):
     alpha = [[0 for _ in range(len(V))] for _ in range(len(A))]
-    for w in range(len(A)):
-        if w == 0:
-            alpha[w][0] = 1
+    for j in range(len(A)):
+        if j == 0:
+            alpha[j][0] = 1
         else:
-            alpha[w][0] = 0
+            alpha[j][0] = 0
 
     for t in range(1, len(V)):
-        for w in range(len(A)):
+        for j in range(len(A)):
             summation = 0
             for i in range(len(A)):
-                summation += alpha[i][t-1] * A[i][w]
-            alpha[w][t] = B[w][V[t]] * summation
+                summation += alpha[i][t-1] * A[i][j]
+            alpha[j][t] = B[j][V[t]] * summation
     
-    final_prob = sum(alpha[w][len(V)-1] for w in range(len(A)))
+    final_prob = sum(alpha[j][len(V)-1] for j in range(len(A)))
     
     return final_prob
 

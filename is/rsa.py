@@ -43,11 +43,14 @@ def extended_euclidean(a, b):
 
 gcd, x, y = extended_euclidean(e, phi)
 d = x % phi
+C = pow(m, e) % n
+
  
 print("p, q, n, e, d", p, q, n, e, d)
  
 m = int(input("Enter message (number):"))
-C = pow(m, e) % n
+
+
 print('Encrypted message:', C)
  
 M = pow(C, d) % n
