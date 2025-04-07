@@ -1,4 +1,5 @@
 from sha import sha1
+from rsa import extended_euclidean
 
 p = 61  
 q = 53  
@@ -8,17 +9,7 @@ e = 17
 
 
 def mod_inverse(e, phi):
-    def extended_gcd(a, b):
-        if a == 0:
-            return b, 0, 1
-        gcd, x1, y1 = extended_gcd(b % a, a)
-        x = y1 - (b // a) * x1
-        y = x1
-        return gcd, x, y
-
-    gcd, x, _ = extended_gcd(e, phi)
-    if gcd != 1:
-        raise Exception("Modular inverse does not exist")
+    gcd, x, y = extended_euclidean(e, phi)
     return x % phi
 
 d = mod_inverse(e, phi) 
