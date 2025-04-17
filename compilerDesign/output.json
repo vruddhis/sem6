@@ -1,0 +1,21 @@
+{
+  "functions": [
+    {
+      "name": "main",
+      "instrs": [
+        {
+          "op": "const",
+          "dest": "b",
+          "type": "int",
+          "value": 10
+        },
+        {
+          "op": "print",
+          "args": [
+            "b"
+          ]
+        }
+      ]
+    }
+  ]
+}
